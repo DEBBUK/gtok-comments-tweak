@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import <objc/runtime.h>
-#import <notify.h>
+#import <objc/message.h>
 
 #pragma mark - Logging
 
@@ -222,7 +222,8 @@ static void GTokFetchComments(id awemeModel) {
 
     id controller = nil;
     @try {
-        controller = [[dcCls alloc] initWithAwemeModel:awemeModel];
+        id alloced = [dcCls alloc];
+        controller = ((id (*)(id, SEL, id))objc_msgSend)(alloced, NSSelectorFromString(@"initWithAwemeModel:"), awemeModel);
     } @catch (NSException *e) {
         GTokLog(@"initWithAwemeModel failed: %@", e);
         return;
