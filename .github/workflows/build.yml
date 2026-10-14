@@ -1,0 +1,42 @@
+name: build
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcrun --sdk iphoneos --show-sdk-path
+          clang --version | head -1
+
+      - name: Build dylib (arm64, iphoneos)
+        run: |
+          SDK=$(xcrun --sdk iphoneos --show-sdk-path)
+          clang -arch arm64 \
+            -isysroot "$SDK" \
+            -miphoneos-version-min=14.0 \
+            -fobjc-arc \
+            -dynamiclib \
+            -O2 \
+            -framework Foundation \
+            -framework UIKit \
+            -install_name @rpath/GTokComments.dylib \
+            -o GTokComments.dylib \
+            GTokComments.m
+          echo "=== file info ==="
+          file GTokComments.dylib
+          ls -la GTokComments.dylib
+
+      - name: Upload dylib
+        uses: actions/upload-artifact@v4
+        with:
+          name: GTokComments-dylib
+          path: GTokComments.dylib
